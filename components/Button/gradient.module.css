@@ -1,0 +1,34 @@
+.container {
+  @apply absolute right-5 top-5 rounded;
+  max-width: 150px;
+  padding: 2px;
+  z-index: 1;
+  background-color: #4158d0;
+  background-image: linear-gradient(
+    43deg,
+    #4158d0 0%,
+    #c850c0 46%,
+    #ffcc70 100%
+  );
+  filter: brightness(120%);
+
+  &:before {
+    @apply w-full h-full left-0 top-0;
+    z-index: -1;
+    position: absolute;
+    content: "";
+    background-image: linear-gradient(
+      43deg,
+      #4158d0 0%,
+      #c850c0 46%,
+      #ffcc70 100%
+    );
+    filter: blur(20px);
+  }
+}
+
+.gradient {
+  @apply w-full flex justify-center items-center px-5 py-2;
+  background-color: #0b090a;
+  color: white;
+}
