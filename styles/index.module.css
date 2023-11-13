@@ -1,0 +1,15 @@
+.appContainer {
+    @apply w-1/2;
+
+    @media screen and (max-width: 768px) {
+        @apply w-full
+    }
+
+    .formContainer {
+        @apply mt-10;
+
+        @media screen and (max-width: 768px) {
+            @apply mt-24;
+        }
+    }
+}
