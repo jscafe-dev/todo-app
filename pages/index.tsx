@@ -11,7 +11,8 @@ import Profile from "@/components/Profile";
 import Button from "@/components/Button";
 import Spinner from "@/components/Spinner";
 
-import { TASK_STATUS } from "@/lib/constants";
+import { TASK_STATUS, FILTERS } from "@/lib/constants";
+import { getFilterStatusText } from '@/lib/utils';
 import type { Task } from "@/lib/interface";
 
 import styles from '@/styles/index.module.css';
@@ -19,7 +20,13 @@ import styles from '@/styles/index.module.css';
 export default function Home() {
   const { data: session, status } = useSession()
   const [tasks, setTasks] = useState<Task[]>([])
+  const [activeFilter, setActiveFilter] = useState(FILTERS.ALL)
   const isLoggedIn = status === 'authenticated'
+
+  const changeFilter = (newFilter: FILTERS) => {
+    setActiveFilter(newFilter)
+  }
+
   return (
     <div className="bg-primaryBlack">
       {isLoggedIn ? <Profile name={session?.user?.name} profileImageUrl={session?.user?.image} /> : <GradientButton onClick={() => signIn("google")}>
@@ -92,6 +99,12 @@ export default function Home() {
             )}
           </Formik>
         </div>
+        {isLoggedIn && <div className={cx("flex mt-5", styles.filters)}>
+          <Button onClick={() => changeFilter(FILTERS.ALL)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.ALL, "bg-white text-black": activeFilter !== FILTERS.ALL })}>{getFilterStatusText(FILTERS.ALL)}</Button>
+          <Button onClick={() => changeFilter(FILTERS.TODO)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.TODO, "bg-red1 text-white": activeFilter !== FILTERS.TODO })}>{getFilterStatusText(FILTERS.TODO)}</Button>
+          <Button onClick={() => changeFilter(FILTERS.IN_PROGRESS)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.IN_PROGRESS, "bg-yellow text-black": activeFilter !== FILTERS.IN_PROGRESS })}>{getFilterStatusText(FILTERS.IN_PROGRESS)}</Button>
+          <Button onClick={() => changeFilter(FILTERS.DONE)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.DONE, "bg-green text-white": activeFilter !== FILTERS.DONE })}>{getFilterStatusText(FILTERS.DONE)}</Button>
+        </div>}
       </div>
     </div>
   )
