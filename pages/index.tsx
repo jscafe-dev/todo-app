@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import cx from 'classnames';
 import { toast } from 'react-toastify';
 import { signIn } from "next-auth/react"
 import { useSession } from "next-auth/react"
-import { LogIn, Megaphone } from 'lucide-react';
+import { LogIn, Megaphone, Box } from 'lucide-react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Masonry from 'react-masonry-css'
 
@@ -12,6 +12,7 @@ import Profile from "@/components/Profile";
 import Button from "@/components/Button";
 import Spinner from "@/components/Spinner";
 import SkeletonCard from "@/components/Card/skeleton";
+import Card from "@/components/Card";
 
 import { TASK_STATUS, FILTERS, breakpointColumnsObj, skeletonCardsData } from "@/lib/constants";
 import { getFilterStatusText } from '@/lib/utils';
@@ -30,10 +31,22 @@ export default function Home() {
     setActiveFilter(newFilter)
   }
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(`/api/task?email=${session?.user?.email}`)
+      const data = await response.json() as Task[]
+      setTasks(data)
+      toggleSkeleton(false)
+    }
+
+    if (!session?.user?.email) return
+    fetchData()
+  }, [session?.user?.email])
+
   return (
     <div className="bg-primaryBlack">
       {isLoggedIn ? <Profile name={session?.user?.name} profileImageUrl={session?.user?.image} /> : <GradientButton onClick={() => signIn("google")}>
-        Sigin <LogIn className="ml-2" size={20} />
+        Signin <LogIn className="ml-2" size={20} />
       </GradientButton>}
 
       <div className={cx("mx-auto flex flex-col min-h-screen", styles.appContainer)}>
@@ -120,15 +133,28 @@ export default function Home() {
           {/* If the user is not signedin */}
           {!isLoggedIn && <div className="flex items-center justify-center text-white">
             <Megaphone size={40} className="mr-3" />
-            <span className="text-xl">Sigin to access the app</span>
+            <span className="text-xl">Signin to access the app</span>
           </div>}
-          
+
+          {/* No tasks present */}
+          {!showSkeleton && isLoggedIn && tasks.length === 0 && <div className="flex items-center justify-center text-white">
+            <Box size={40} className="mr-3" />
+            <span className="text-xl">No Tasks Found</span>
+          </div>}
+
           {/* Skeleton Loader */}
           {showSkeleton && isLoggedIn && <Masonry
             breakpointCols={breakpointColumnsObj}
             className="my-masonry-grid"
             columnClassName="my-masonry-grid_column">
             {skeletonCardsData.map((item) => <SkeletonCard key={item?.id} externalStyles={item?.externalStyles} />)}
+          </Masonry>}
+
+          {!showSkeleton && isLoggedIn && tasks.length !== 0 && <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column">
+            {tasks.map((item) => <Card key={item.id} taskData={item} />)}
           </Masonry>}
         </div>
       </div>

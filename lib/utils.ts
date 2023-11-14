@@ -1,4 +1,4 @@
-import { FILTERS } from "@/lib/constants";
+import { FILTERS, TASK_STATUS } from "@/lib/constants";
 
 
 /**
@@ -14,4 +14,13 @@ export const getFilterStatusText = (filter: FILTERS) => {
         [FILTERS.DONE]: "Done",
     }
     return stringStore[filter]
+}
+
+export const getStatusText = (task: TASK_STATUS) => {
+    const stringStore = {
+        [TASK_STATUS.TODO]: "Todo",
+        [TASK_STATUS.IN_PROGRESS]: "In Progress",
+        [TASK_STATUS.DONE]: "Done",
+    }
+    return stringStore[task]
 }
