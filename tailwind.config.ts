@@ -5,6 +5,7 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     colors: {
@@ -16,7 +17,8 @@ const config: Config = {
       button2: '#6366f1',
       red1: '#e63946',
       yellow: '#ffd60a',
-      green: '#7cb518'
+      green: '#7cb518',
+      pulseGrey: '#3e5c76',
     },
   },
   plugins: [],

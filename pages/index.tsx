@@ -5,21 +5,24 @@ import { signIn } from "next-auth/react"
 import { useSession } from "next-auth/react"
 import { LogIn, Megaphone } from 'lucide-react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import Masonry from 'react-masonry-css'
 
 import GradientButton from "@/components/Button/gradientButton";
 import Profile from "@/components/Profile";
 import Button from "@/components/Button";
 import Spinner from "@/components/Spinner";
+import SkeletonCard from "@/components/Card/skeleton";
 
-import { TASK_STATUS, FILTERS } from "@/lib/constants";
+import { TASK_STATUS, FILTERS, breakpointColumnsObj, skeletonCardsData } from "@/lib/constants";
 import { getFilterStatusText } from '@/lib/utils';
 import type { Task } from "@/lib/interface";
 
 import styles from '@/styles/index.module.css';
 
 export default function Home() {
-  const { data: session, status } = useSession()
-  const [tasks, setTasks] = useState<Task[]>([])
+  const { data: session, status } = useSession() // user session data
+  const [tasks, setTasks] = useState<Task[]>([]) // array of all tasks
+  const [showSkeleton, toggleSkeleton] = useState(true)
   const [activeFilter, setActiveFilter] = useState(FILTERS.ALL)
   const isLoggedIn = status === 'authenticated'
 
@@ -49,6 +52,7 @@ export default function Home() {
               return errors;
             }}
             onSubmit={async (values, { setSubmitting, resetForm }) => {
+              // if the user is not signedin then show error toast and return
               if (!isLoggedIn) {
                 toast.error("You must be signed in to create tasks", {
                   position: toast.POSITION.TOP_RIGHT
@@ -57,6 +61,8 @@ export default function Home() {
                 setSubmitting(false);
                 return
               }
+
+              // make network call to add a task
               const response = await fetch('/api/task', {
                 method: 'POST',
                 headers: {
@@ -67,11 +73,13 @@ export default function Home() {
 
               const data = await response.json()
 
+              // if backend sends error then show error toast
               if (data?.error) {
                 toast.error(data?.error, {
                   position: toast.POSITION.TOP_RIGHT
                 });
               } else {
+                // update app state with data provided by api
                 const tasksLists = data?.tasks as Task[]
                 setTasks(tasksLists)
                 toast.success("Task Created", {
@@ -99,17 +107,29 @@ export default function Home() {
             )}
           </Formik>
         </div>
+
+        {/* Buttons to filter tasks */}
         {isLoggedIn && <div className={cx("flex mt-5", styles.filters)}>
           <Button onClick={() => changeFilter(FILTERS.ALL)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.ALL, "bg-white text-black": activeFilter !== FILTERS.ALL })}>{getFilterStatusText(FILTERS.ALL)}</Button>
           <Button onClick={() => changeFilter(FILTERS.TODO)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.TODO, "bg-red1 text-white": activeFilter !== FILTERS.TODO })}>{getFilterStatusText(FILTERS.TODO)}</Button>
           <Button onClick={() => changeFilter(FILTERS.IN_PROGRESS)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.IN_PROGRESS, "bg-yellow text-black": activeFilter !== FILTERS.IN_PROGRESS })}>{getFilterStatusText(FILTERS.IN_PROGRESS)}</Button>
           <Button onClick={() => changeFilter(FILTERS.DONE)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.DONE, "bg-green text-white": activeFilter !== FILTERS.DONE })}>{getFilterStatusText(FILTERS.DONE)}</Button>
         </div>}
+
         <div className={cx("bg-darkGrey mt-5 p-10 rounded", styles.tasks)}>
+          {/* If the user is not signedin */}
           {!isLoggedIn && <div className="flex items-center justify-center text-white">
-              <Megaphone size={40} className="mr-3" />
-              <span className="text-xl">Sigin to access the app</span>
-            </div>}
+            <Megaphone size={40} className="mr-3" />
+            <span className="text-xl">Sigin to access the app</span>
+          </div>}
+          
+          {/* Skeleton Loader */}
+          {showSkeleton && isLoggedIn && <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column">
+            {skeletonCardsData.map((item) => <SkeletonCard key={item?.id} externalStyles={item?.externalStyles} />)}
+          </Masonry>}
         </div>
       </div>
     </div>
