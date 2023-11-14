@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import cx from 'classnames';
 import { toast } from 'react-toastify';
 import { signIn } from "next-auth/react"
@@ -31,17 +31,36 @@ export default function Home() {
     setActiveFilter(newFilter)
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch(`/api/task?email=${session?.user?.email}`)
-      const data = await response.json() as Task[]
-      setTasks(data)
-      toggleSkeleton(false)
+  const getFilteredTasks = () => {
+    switch (activeFilter) {
+      case FILTERS.ALL: {
+        return tasks
+      }
+      case FILTERS.TODO: {
+        return tasks.filter((task) => task.status === TASK_STATUS.TODO)
+      }
+      case FILTERS.IN_PROGRESS: {
+        return tasks.filter((task) => task.status === TASK_STATUS.IN_PROGRESS)
+      }
+      case FILTERS.DONE: {
+        return tasks.filter((task) => task.status === TASK_STATUS.DONE)
+      }
     }
+  }
+  let filteredTasks = getFilteredTasks() || []
 
+  const fetchData = useCallback(async () => {
+    toggleSkeleton(true)
+    const response = await fetch(`/api/task?email=${session?.user?.email}`)
+    const data = await response.json() as Task[]
+    setTasks(data)
+    toggleSkeleton(false)
+  }, [session?.user?.email])
+
+  useEffect(() => {
     if (!session?.user?.email) return
     fetchData()
-  }, [session?.user?.email])
+  }, [fetchData, session?.user?.email])
 
   return (
     <div className="bg-primaryBlack">
@@ -123,10 +142,10 @@ export default function Home() {
 
         {/* Buttons to filter tasks */}
         {isLoggedIn && <div className={cx("flex mt-5", styles.filters)}>
-          <Button onClick={() => changeFilter(FILTERS.ALL)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.ALL, "bg-white text-black": activeFilter !== FILTERS.ALL })}>{getFilterStatusText(FILTERS.ALL)}</Button>
-          <Button onClick={() => changeFilter(FILTERS.TODO)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.TODO, "bg-red1 text-white": activeFilter !== FILTERS.TODO })}>{getFilterStatusText(FILTERS.TODO)}</Button>
-          <Button onClick={() => changeFilter(FILTERS.IN_PROGRESS)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.IN_PROGRESS, "bg-yellow text-black": activeFilter !== FILTERS.IN_PROGRESS })}>{getFilterStatusText(FILTERS.IN_PROGRESS)}</Button>
-          <Button onClick={() => changeFilter(FILTERS.DONE)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.DONE, "bg-green text-white": activeFilter !== FILTERS.DONE })}>{getFilterStatusText(FILTERS.DONE)}</Button>
+          <Button onClick={() => changeFilter(FILTERS.ALL)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white border-white border-2": activeFilter === FILTERS.ALL, "bg-white text-black": activeFilter !== FILTERS.ALL })}>{getFilterStatusText(FILTERS.ALL)}</Button>
+          <Button onClick={() => changeFilter(FILTERS.TODO)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white border-white border-2": activeFilter === FILTERS.TODO, "bg-red1 text-white": activeFilter !== FILTERS.TODO })}>{getFilterStatusText(FILTERS.TODO)}</Button>
+          <Button onClick={() => changeFilter(FILTERS.IN_PROGRESS)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white border-white border-2": activeFilter === FILTERS.IN_PROGRESS, "bg-yellow text-black": activeFilter !== FILTERS.IN_PROGRESS })}>{getFilterStatusText(FILTERS.IN_PROGRESS)}</Button>
+          <Button onClick={() => changeFilter(FILTERS.DONE)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white border-white border-2": activeFilter === FILTERS.DONE, "bg-green text-white": activeFilter !== FILTERS.DONE })}>{getFilterStatusText(FILTERS.DONE)}</Button>
         </div>}
 
         <div className={cx("bg-darkGrey mt-5 p-10 rounded", styles.tasks)}>
@@ -137,7 +156,7 @@ export default function Home() {
           </div>}
 
           {/* No tasks present */}
-          {!showSkeleton && isLoggedIn && tasks.length === 0 && <div className="flex items-center justify-center text-white">
+          {!showSkeleton && isLoggedIn && filteredTasks.length === 0 && <div className="flex items-center justify-center text-white">
             <Box size={40} className="mr-3" />
             <span className="text-xl">No Tasks Found</span>
           </div>}
@@ -150,11 +169,11 @@ export default function Home() {
             {skeletonCardsData.map((item) => <SkeletonCard key={item?.id} externalStyles={item?.externalStyles} />)}
           </Masonry>}
 
-          {!showSkeleton && isLoggedIn && tasks.length !== 0 && <Masonry
+          {!showSkeleton && isLoggedIn && filteredTasks.length !== 0 && <Masonry
             breakpointCols={breakpointColumnsObj}
             className="my-masonry-grid"
             columnClassName="my-masonry-grid_column">
-            {tasks.map((item) => <Card key={item.id} taskData={item} />)}
+            {filteredTasks.map((item) => <Card key={item.id} taskData={item} fetchData={fetchData}/>)}
           </Masonry>}
         </div>
       </div>
