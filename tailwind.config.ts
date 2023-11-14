@@ -15,6 +15,8 @@ const config: Config = {
       primaryGrey: '#0d1b2a',
       button2: '#6366f1',
       red1: '#e63946',
+      yellow: '#ffd60a',
+      green: '#7cb518'
     },
   },
   plugins: [],

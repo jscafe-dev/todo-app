@@ -3,7 +3,7 @@ import cx from 'classnames';
 import { toast } from 'react-toastify';
 import { signIn } from "next-auth/react"
 import { useSession } from "next-auth/react"
-import { LogIn } from 'lucide-react';
+import { LogIn, Megaphone } from 'lucide-react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 
 import GradientButton from "@/components/Button/gradientButton";
@@ -105,6 +105,12 @@ export default function Home() {
           <Button onClick={() => changeFilter(FILTERS.IN_PROGRESS)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.IN_PROGRESS, "bg-yellow text-black": activeFilter !== FILTERS.IN_PROGRESS })}>{getFilterStatusText(FILTERS.IN_PROGRESS)}</Button>
           <Button onClick={() => changeFilter(FILTERS.DONE)} externalClass={cx("px-2 rounded font-bold mr-2", { "bg-button2 text-white": activeFilter === FILTERS.DONE, "bg-green text-white": activeFilter !== FILTERS.DONE })}>{getFilterStatusText(FILTERS.DONE)}</Button>
         </div>}
+        <div className={cx("bg-darkGrey mt-5 p-10 rounded", styles.tasks)}>
+          {!isLoggedIn && <div className="flex items-center justify-center text-white">
+              <Megaphone size={40} className="mr-3" />
+              <span className="text-xl">Sigin to access the app</span>
+            </div>}
+        </div>
       </div>
     </div>
   )
